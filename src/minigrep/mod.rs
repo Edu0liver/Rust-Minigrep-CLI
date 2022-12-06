@@ -59,14 +59,19 @@ pub mod minigrep {
     }
 
     impl Config {
-        pub fn new(args: &[String]) -> Result<Config, &str> {
+        pub fn new(mut args: env::Args) -> Result<Config, &'static str> {
+            args.next();
 
-            if args.len() < 3 {
-                return Err("Not enough arguments!");
-            }
+            let query = match args.next() {
+                Some(arg) => arg,
+                None => return Err("Didn't get a query string!")
+            } ;
 
-            let query = args[1].clone();
-            let filename = args[2].clone();
+            let filename = match args.next() {
+                Some(arg) => arg,
+                None => return Err("Didn't get a file name!")
+            } ;
+
             let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
         
             Ok(Config { query, filename, case_sensitive })
