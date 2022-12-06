@@ -3,6 +3,7 @@ pub mod minigrep {
     use std::error::Error;
     use std::fs;
     use std::env;
+    use std::collections::HashMap;
 
     pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         let contents = fs::read_to_string(config.filename)?;
@@ -13,32 +14,38 @@ pub mod minigrep {
             search_case_insensitive(&config.query, &contents)
         };
         
-        for line in results{
-            println!("{}", line)
+        for (count, line) in results{
+            println!("Line: {} -> {}", count, line)
         }
 
         Ok(())
     }
 
-    pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-        let mut results = Vec::new();
+    pub fn search<'a>(query: &str, contents: &'a str) -> HashMap<u32, &'a str> {
+        let mut results: HashMap<u32, &str> = HashMap::new();
+        let mut count: u32 = 0;
     
         for line in contents.lines() {
+            count += 1;
+
             if line.contains(query){
-                results.push(line)
+                results.insert(count, line);
             }
         }
     
         results
     }
     
-    pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> HashMap<u32, &'a str> {
         let query = query.to_lowercase();
-        let mut results = Vec::new();
+        let mut results: HashMap<u32, &str> = HashMap::new();
+        let mut count: u32 = 0;
     
         for line in contents.lines() {
+            count += 1;
+            
             if line.to_lowercase().contains(&query){
-                results.push(line)
+                results.insert(count, line);
             }
         }
     
@@ -69,6 +76,7 @@ pub mod minigrep {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
     use crate::minigrep::minigrep::search;
     use crate::minigrep::minigrep::search_case_insensitive;
 
@@ -81,7 +89,7 @@ safe, fast, productive.
 Pick three.
 Duck tape.";
 
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents))
+        assert_eq!(HashMap::from([(2, "safe, fast, productive.")]), search(query, contents))
     }
     
     fn case_sensitive() {
@@ -92,6 +100,9 @@ safe, fast, productive.
 Pick three.
 Trust me.";
 
-        assert_eq!(vec!["Rust:,", "Trust me."], search_case_insensitive(query, contents))
+        assert_eq!(HashMap::from([
+            (1, "Rust:,"),
+            (4, "Trust me.")
+        ]), search_case_insensitive(query, contents))
     }
 }
