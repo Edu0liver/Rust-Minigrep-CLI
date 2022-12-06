@@ -15,9 +15,12 @@ fn main() {
         process::exit(1)
     });
 
-    if let Err(err) = run(config) {
-        eprintln!("Application Error!");
-        process::exit(1)
+    match run(config) {
+        Ok(result) => result,
+        Err(err) => {
+            eprintln!("Application Error!");
+            process::exit(1)
+        }
     }
 
 }
